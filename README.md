@@ -82,27 +82,45 @@ Run the CLI demo with: `python main.py`
 
 ## 🧪 Testing PawPal+
 
+Run the full test suite from the project root:
+
 ```bash
-# Run the full test suite:
-pytest
-
-# Run with coverage:
-pytest --cov
+python -m pytest tests/test_pawpal.py -v
 ```
-![alt text](image.png)
 
-Sample test output:
+**What the tests cover:**
+- **Sorting correctness** — tasks return in chronological HH:MM order
+- **Conflict detection** — duplicate time slots are flagged with a warning
+- **Recurrence logic** — daily/weekly tasks create the next occurrence after completion; `once` tasks do not
+- **Filter by status** — only incomplete (or complete) tasks are returned
+- **Filter by pet** — name matching is case-insensitive
+- **Edge cases** — empty pet, already-completed task, no match on pet filter
 
 ```
 ============================= test session starts =============================
-platform win32 -- Python 3.13.13, pytest-9.1.1, pluggy-1.6.0
-collecting ... collected 2 items
+platform win32 -- Python 3.13.13, pytest-9.1.1, pluggy-1.6.0 -- .venv/Scripts/python.exe
+collecting ... collected 14 items
 
-tests/test_pawpal.py::test_task_mark_complete PASSED                     [ 50%]
-tests/test_pawpal.py::test_pet_task_count_increases_on_add PASSED        [100%]
+tests/test_pawpal.py::test_task_mark_complete PASSED                     [  7%]
+tests/test_pawpal.py::test_pet_task_count_increases_on_add PASSED        [ 14%]
+tests/test_pawpal.py::test_sort_by_time_orders_chronologically PASSED    [ 21%]
+tests/test_pawpal.py::test_sort_by_time_empty_pet PASSED                 [ 28%]
+tests/test_pawpal.py::test_detect_conflicts_same_time_flags_warning PASSED [ 35%]
+tests/test_pawpal.py::test_detect_conflicts_different_times_no_warning PASSED [ 42%]
+tests/test_pawpal.py::test_handle_recurrence_daily_creates_next_day PASSED [ 50%]
+tests/test_pawpal.py::test_handle_recurrence_weekly_creates_seven_days_later PASSED [ 57%]
+tests/test_pawpal.py::test_handle_recurrence_once_does_not_add_task PASSED [ 64%]
+tests/test_pawpal.py::test_filter_by_status_returns_only_incomplete PASSED [ 71%]
+tests/test_pawpal.py::test_filter_by_pet_case_insensitive PASSED         [ 78%]
+tests/test_pawpal.py::test_mark_complete_twice_stays_true PASSED         [ 85%]
+tests/test_pawpal.py::test_handle_recurrence_not_complete_does_nothing PASSED [ 92%]
+tests/test_pawpal.py::test_filter_by_pet_no_match_returns_empty PASSED   [100%]
 
-============================== 2 passed in 0.03s ==============================
+============================== 14 passed in 0.06s ==============================
 ```
+
+**Confidence level: ⭐⭐⭐⭐ (4/5)**
+The core scheduling behaviors are fully tested. One star held back because conflict detection only checks exact time matches — duration overlaps (e.g. a task at 07:30 for 60 min vs one at 08:00) are not yet caught.
 
 ## 📐 Smarter Scheduling
 

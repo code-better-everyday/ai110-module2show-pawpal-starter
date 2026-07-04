@@ -95,13 +95,27 @@ In testing, the UI allowed adding the same task twice at the same time, which tr
 
 **a. What you tested**
 
-- What behaviors did you test?
-- Why were these tests important?
+We identified 5 core behaviors to verify in `pawpal_system.py`:
+
+| # | Behavior | Method |
+|---|----------|--------|
+| 1 | Tasks sort chronologically by time | `sort_by_time()` |
+| 2 | Two tasks at the same time/date trigger a conflict warning | `detect_conflicts()` |
+| 3 | A `daily` task marked complete spawns a new task for tomorrow | `handle_recurrence()` |
+| 4 | `filter_by_status(completed=False)` returns only incomplete tasks | `filter_by_status()` |
+| 5 | `filter_by_pet("mochi")` matches `"Mochi"` (case-insensitive) | `filter_by_pet()` |
+
+These behaviors are the core scheduling contract — if any one of them is broken, the app produces a wrong or misleading schedule for the owner.
 
 **b. Confidence**
 
-- How confident are you that your scheduler works correctly?
-- What edge cases would you test next if you had more time?
+Edge cases identified and tested in `test_pawpal.py`:
+
+- **Pet with no tasks** — `sort_by_time()` and `detect_conflicts()` should return empty lists, not crash
+- **`once` task after `mark_complete`** — `handle_recurrence()` must NOT create a next occurrence
+- **Two tasks at the exact same time** — conflict warning should appear with both task names
+- **`weekly` task recurrence** — new task's `due_date` should be exactly 7 days later, not 1
+- **Task already completed** — calling `mark_complete()` twice should stay `True`, not break
 
 ---
 
