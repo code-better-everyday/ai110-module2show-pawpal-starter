@@ -2,15 +2,52 @@
 
 ## 1. System Design
 
+- You are building **PawPal+**, a Streamlit app that helps a pet owner plan care tasks for their pet.
+
+## Scenario
+
+A busy pet owner needs help staying consistent with pet care. They want an assistant that can:
+
+- Track pet care tasks (walks, feeding, meds, enrichment, grooming, etc.)
+- Consider constraints (time available, priority, owner preferences)
+- Produce a daily plan and explain why it chose that plan
+
+## 3 core features 
+- Add a pet and their tasks and needs
+- schedule a task or care item for any pet based on time and calendar availabiliy 
+- See today and weekly schgedule of task define for today based on time availabaility and pet care that is important 
+
+
+
+
+**Assumptions**
+
+- **Single owner per session** — the app supports one owner at a time. The Owner is created from the name entered in the UI and stored in session state for the duration of the app session. There is no login or multi-user system.
+- **Time as a string** — `scheduled_time` is stored as a plain "HH:MM" string rather than a full datetime object. This keeps the data simple and is sufficient for sorting with a lambda and detecting exact-time conflicts.
+- **Date separate from time** — `due_date` is stored as a `date` object (not combined into a datetime). A task is fully identified by its `due_date` + `scheduled_time` together.
+- **Priority and frequency as strings** — both are plain strings ("low"/"medium"/"high" and "once"/"daily"/"weekly") rather than enums, to keep the code approachable at this stage.
+- **Conflict detection by exact time match** — two tasks conflict if they share the same `scheduled_time` on the same `due_date`. Overlapping durations are not checked in the core design.
+- **All pets belong to one owner** — there is no concept of shared pets between owners in this design.
+
+---
+
 **a. Initial design**
 
-- Briefly describe your initial UML design.
-- What classes did you include, and what responsibilities did you assign to each?
+I designed a four-class system where each class has a single, clear responsibility.
+
+- **Task** — represents one care activity. It stores the task name, scheduled time (HH:MM format), duration in minutes, priority (low/medium/high), frequency (once/daily/weekly), completion status, and due date. It can mark itself complete and describe itself as a string.
+
+- **Pet** — stores a pet's name and species, and owns a list of Tasks. It is responsible for adding new tasks and reporting how many tasks it has.
+
+- **Owner** — manages a list of Pets. It acts as the top-level container and can retrieve all tasks across every pet in one call.
+
+- **Scheduler** — the "brain" of the system. It takes an Owner and is responsible for all scheduling intelligence: retrieving the full schedule, sorting tasks by time, filtering by completion status or pet name, detecting time conflicts, and handling recurring task logic.
 
 **b. Design changes**
 
-- Did your design change during implementation?
-- If yes, describe at least one change and why you made it.
+Yes, one relationship in the UML changed during the design review.
+
+The initial diagram used a `1..*` (one-to-many) relationship between Owner and Pet, meaning an Owner had to have at least one Pet. I changed this to `0..*` (zero-to-many) because in real usage an Owner is created first and pets are added afterward. Requiring at least one pet at creation time would make the system harder to use and less realistic.
 
 ---
 
