@@ -28,6 +28,8 @@ A busy pet owner needs help staying consistent with pet care. They want an assis
 - **Priority and frequency as strings** — both are plain strings ("low"/"medium"/"high" and "once"/"daily"/"weekly") rather than enums, to keep the code approachable at this stage.
 - **Conflict detection by exact time match** — two tasks conflict if they share the same `scheduled_time` on the same `due_date`. Overlapping durations are not checked in the core design.
 - **All pets belong to one owner** — there is no concept of shared pets between owners in this design.
+- **Owner name is unique per session** — the app treats the owner name entered in the UI as the single user identity. There is no authentication or duplicate-name detection.
+- **Pet name is unique per owner** — each pet added to an owner is assumed to have a distinct name. The app does not prevent two pets with the same name, but filtering and display logic assumes names are unique.
 
 ---
 
