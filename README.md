@@ -70,11 +70,19 @@ pytest
 # Run with coverage:
 pytest --cov
 ```
+![alt text](image.png)
 
 Sample test output:
 
 ```
-# Paste your pytest output here
+============================= test session starts =============================
+platform win32 -- Python 3.13.13, pytest-9.1.1, pluggy-1.6.0
+collecting ... collected 2 items
+
+tests/test_pawpal.py::test_task_mark_complete PASSED                     [ 50%]
+tests/test_pawpal.py::test_pet_task_count_increases_on_add PASSED        [100%]
+
+============================== 2 passed in 0.03s ==============================
 ```
 
 ## 📐 Smarter Scheduling
