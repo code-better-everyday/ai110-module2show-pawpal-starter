@@ -10,7 +10,7 @@ Core backend logic for PawPal+. Defines the four main classes:
 
 from __future__ import annotations
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import date, timedelta
 
 
 @dataclass
@@ -162,6 +162,27 @@ class Scheduler:
         """
         When a recurring task is marked complete, create the next occurrence.
         Daily tasks advance due_date by 1 day; weekly tasks by 7 days.
-        Implemented in Phase 4 (Algorithmic Layer).
+        'once' tasks are not re-created — they are one-off activities.
         """
-        pass
+        if not task.completed or task.frequency == "once":
+            return
+
+        # Calculate the next due date based on frequency
+        if task.frequency == "daily":
+            next_date = task.due_date + timedelta(days=1)
+        elif task.frequency == "weekly":
+            next_date = task.due_date + timedelta(weeks=1)
+        else:
+            return
+
+        # Create a fresh (uncompleted) task for the next occurrence
+        next_task = Task(
+            name=task.name,
+            scheduled_time=task.scheduled_time,
+            duration_minutes=task.duration_minutes,
+            priority=task.priority,
+            frequency=task.frequency,
+            completed=False,
+            due_date=next_date,
+        )
+        pet.add_task(next_task)

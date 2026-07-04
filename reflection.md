@@ -57,13 +57,21 @@ The initial diagram used a `1..*` (one-to-many) relationship between Owner and P
 
 **a. Constraints and priorities**
 
-- What constraints does your scheduler consider (for example: time, priority, preferences)?
-- How did you decide which constraints mattered most?
+The scheduler considers two main constraints: **scheduled time** and **completion status**.
+
+- Scheduled time is the primary constraint — tasks are sorted chronologically so the owner sees what needs to happen first. A pet care schedule is inherently time-driven (morning walk before evening walk, feeding at a consistent time).
+- Completion status is used for filtering — the owner can view only what still needs to be done, reducing noise from already-completed tasks.
+- Frequency (daily/weekly/once) drives recurrence logic — daily tasks automatically reappear the next day when marked complete.
+
+Priority was collected as an attribute but is not yet used as a sort key. Time ordering felt more natural for a daily schedule view; priority-based sorting is noted as a future enhancement.
 
 **b. Tradeoffs**
 
-- Describe one tradeoff your scheduler makes.
-- Why is that tradeoff reasonable for this scenario?
+The scheduler detects conflicts by **exact time match** (same HH:MM on the same date) rather than checking whether task durations overlap.
+
+For example, a 30-minute walk at 07:30 and a 60-minute vet appointment at 07:30 are flagged as a conflict — but a 30-minute walk at 07:30 and a 60-minute appointment at 07:45 are not, even though they overlap in real time.
+
+This is a reasonable tradeoff for this scenario because: pet care tasks are typically planned at fixed times rather than back-to-back, duration overlap detection would require more complex interval logic, and the simpler check still catches the most common mistake (accidentally scheduling two things at the exact same time).
 
 ---
 
