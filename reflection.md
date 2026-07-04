@@ -73,6 +73,8 @@ For example, a 30-minute walk at 07:30 and a 60-minute vet appointment at 07:30 
 
 This is a reasonable tradeoff for this scenario because: pet care tasks are typically planned at fixed times rather than back-to-back, duration overlap detection would require more complex interval logic, and the simpler check still catches the most common mistake (accidentally scheduling two things at the exact same time).
 
+In testing, the UI allowed adding the same task twice at the same time, which triggered a conflict warning as expected — confirming the detection logic works correctly. This also highlighted the need for a duplicate guard in the UI (planned for Phase 6).
+
 ---
 
 ## 3. AI Collaboration

@@ -47,18 +47,37 @@ pip install -r requirements.txt
 Run the CLI demo with: `python main.py`
 
 ```
-=============================================
+==================================================
   Today's Schedule for Jordan
   Date: 2026-07-04
-=============================================
-  [Mochi]  [ ] 07:30 | Morning walk (30 min) [high] [daily]
-  [Luna]   [ ] 08:00 | Feeding (10 min) [high] [daily]
-  [Mochi]  [ ] 09:00 | Flea medication (5 min) [medium] [weekly]
-  [Luna]   [ ] 11:00 | Grooming (20 min) [medium] [weekly]
-  [Mochi]  [ ] 18:00 | Evening walk (30 min) [high] [daily]
+==================================================
+  [Mochi ]  [ ] 07:30 | Morning walk (30 min) [high] [daily]
+  [Luna  ]  [ ] 08:00 | Feeding (10 min) [high] [daily]
+  [Mochi ]  [ ] 09:00 | Flea medication (5 min) [medium] [weekly]
+  [Luna  ]  [ ] 09:00 | Vet appointment (60 min) [high] [once]
+  [Luna  ]  [ ] 11:00 | Grooming (20 min) [medium] [weekly]
+  [Mochi ]  [ ] 18:00 | Evening walk (30 min) [high] [daily]
 
-No scheduling conflicts.
-=============================================
+--- Conflict Check ---
+  Conflicts detected:
+  ! Conflict at 09:00 on 2026-07-04: 'Flea medication' and 'Vet appointment'
+
+--- Recurring Task Demo ---
+  Before: [ ] 07:30 | Morning walk (30 min) [high] [daily]
+  Marking 'Morning walk' complete and scheduling next occurrence...
+  After:  [x] 07:30 | Morning walk (30 min) [high] [daily]
+  Next:   [ ] 07:30 | Morning walk (30 min) [high] [daily] (due: 2026-07-05)
+
+--- Filter: Incomplete tasks only ---
+  [Mochi ]  [ ] 18:00 | Evening walk (30 min) [high] [daily]
+  [Mochi ]  [ ] 09:00 | Flea medication (5 min) [medium] [weekly]
+  ...
+
+--- Filter: Mochi's tasks only ---
+  [Mochi ]  [x] 07:30 | Morning walk (30 min) [high] [daily]
+  [Mochi ]  [ ] 18:00 | Evening walk (30 min) [high] [daily]
+  ...
+==================================================
 ```
 
 ## 🧪 Testing PawPal+
@@ -97,12 +116,8 @@ tests/test_pawpal.py::test_pet_task_count_increases_on_add PASSED        [100%]
 
 ## 📸 Demo Walkthrough
 
-Describe your app in numbered steps so a reader can follow along without watching a video:
-
-1. <!-- Describe this step -->
-2. <!-- Describe this step -->
-3. <!-- Describe this step -->
-4. <!-- Describe this step -->
-5. <!-- Add more steps as needed -->
-
-**Screenshot or video** *(optional)*: <!-- Insert a screenshot or link to a demo video here -->
+1. Launch the app with `streamlit run app.py` and open `http://localhost:8501` in your browser.
+2. Enter your name in the **Owner name** field and your pet's name and species.
+3. Add tasks for your pet — enter a task name, scheduled time (HH:MM), duration, priority, and frequency, then click **Add task**. The task table below updates immediately.
+4. Add a second task at the same time as an existing one to see the **conflict warning** appear when you generate the schedule.
+5. Click **Generate schedule** to see all tasks sorted chronologically with a conflict check — any time clashes are flagged with a warning message.
