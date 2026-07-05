@@ -153,7 +153,11 @@ The "CLI-first" workflow worked extremely well. Building and verifying all four 
 
 **b. What you would improve**
 
-If I had another iteration, I would redesign the conflict detection to check for overlapping durations rather than just exact time matches. A 30-minute walk at 07:30 and a 60-minute vet appointment at 07:45 are a real conflict in practice, but the current system would not flag them. I would also add support for multiple pets in the UI — the current design stores them in the data model but the Streamlit app only exposes one pet per session.
+If I had another iteration, I would redesign the conflict detection to check for overlapping durations rather than just exact time matches. A 30-minute walk at 07:30 and a 60-minute vet appointment at 07:45 are a real conflict in practice, but the current system would not flag them.
+
+The next planned enhancement is a **Group Walk** feature — a domain-specific scheduling rule I designed but did not yet implement. The idea: if two or more pets share the same species AND both have a task with "walk" in the name scheduled at the same time, that should NOT be flagged as a conflict. Instead the UI would highlight those rows in blue with a "🐾 Group Walk" badge, because multiple dogs (or multiple cats) going for a walk together at the same time is actually good planning, not a mistake. The current conflict detection is species-blind — it flags any two tasks at the same time slot as a problem, regardless of whether they could share the activity.
+
+Implementing this would require a new `Scheduler.detect_group_walks()` method that groups tasks by time slot, checks whether all tasks in that slot share the same species and contain "walk", and returns those slots separately from true conflicts. The UI would then render three states instead of two: conflict (orange ⚠), group walk (blue 🐾), and normal. This feature is fully designed and ready to build — it was a human-directed idea that came from thinking about what a real pet owner would actually want, not from the code itself.
 
 **c. Key takeaway**
 
