@@ -12,7 +12,9 @@
 - **Delete tasks** — Remove any task directly from the task list — useful when you need to resolve a scheduling conflict.
 - **Conflict detection** — Tasks that share the same time slot are flagged in **orange** in both the task list and the generated schedule, so you can spot and fix clashes at a glance.
 - **Recurring tasks** — Daily and weekly tasks automatically generate the next occurrence when marked complete.
-- **Sorted schedule** — One click generates a full cross-pet schedule sorted chronologically.
+- **Priority-first schedule** — One click generates a full cross-pet schedule sorted by priority (high → medium → low), then by time within each tier so urgent tasks always appear first.
+- **Smart emoji labels** — Pet names show a species icon (🐕 dog, 🐈 cat, 🐾 other); task names show a type icon (🚶 walk, 🍽️ feed, 💊 meds, 🏥 vet, ✂️ groom, 🎾 play) inferred automatically from the task name.
+- **Welcome banner** — A visual pet parade greets the user on load — no image files required.
 
 ---
 
@@ -82,12 +84,16 @@ Core scheduling behaviors are fully tested. One star held back because conflict 
 | Feature | Method | Notes |
 |---------|--------|-------|
 | Sort by time | `Scheduler.sort_by_time()` | All tasks across all pets sorted chronologically by HH:MM string |
+| Sort by priority, then time | `Scheduler.sort_by_priority_then_time()` | High-priority tasks appear first; time is the tiebreaker within each priority tier (high → medium → low) |
 | Filter by status | `Scheduler.filter_by_status(completed)` | Returns only completed or only incomplete tasks |
 | Filter by pet | `Scheduler.filter_by_pet(pet_name)` | Case-insensitive match on pet name |
 | Conflict detection | `Scheduler.detect_conflicts()` | Flags tasks sharing the same scheduled_time + due_date; returns warning strings |
 | Recurring tasks | `Scheduler.handle_recurrence(task, pet)` | Daily tasks advance 1 day; weekly tasks advance 7 days via `timedelta`; `once` tasks are not re-created |
 | Delete a task | `Pet.remove_task(name, scheduled_time)` | Removes a task by name + time match; returns True if found. Primary way to resolve conflicts in the UI |
 | Orange conflict highlight | UI — `app.py` | Conflicting task rows appear in orange bold text (with ⚠) in both the task list and the generated schedule |
+| Species emoji | UI — `app.py` `species_emoji()` | 🐕 dog / 🐈 cat / 🐾 other — auto-applied to every pet name in the pet list, task list, and schedule table |
+| Task type emoji | UI — `app.py` `task_emoji()` | 🚶 walk / 🍽️ feed / 💊 med / 🏥 vet / ✂️ groom / 🎾 play / 📋 default — inferred from task name keyword |
+| Welcome banner | UI — `app.py` | Pet emoji row (🐕 🐈 🐇 🦜 🐹 🐠) + tagline rendered at the top of every session — no image files needed |
 
 ---
 
@@ -98,42 +104,42 @@ Core scheduling behaviors are fully tested. One star held back because conflict 
 **Step 1 — Set your name**
 Enter your name and click **Set owner**. The field locks and the app greets you by name. Use **Change owner** to reset the full session.
 
-![Owner welcome screen](1-pet-owner-welcome-screen.png)
+![Owner welcome screen](demo/1-pet-owner-welcome-screen.png)
 
 ---
 
 **Step 2 — Add a pet**
 Enter a pet name and species, then click **Add pet**. The form resets automatically — add as many pets as you like. All added pets appear above the form.
 
-![Pet saved](2-saved-a-pet.png)
+![Pet saved](demo/2-saved-a-pet.png)
 
 ---
 
 **Step 3 — Add tasks**
 Select which pet to assign the task to, fill in the name, time (HH:MM), duration, priority, and frequency, then click **Add task**. Duplicate tasks at the same time are blocked automatically.
 
-![Adding first task](3-add-task1.png)
+![Adding first task](demo/3-add-task1.png)
 
-![Adding task for second pet](4-add-task-second-pet.png)
+![Adding task for second pet](demo/4-add-task-second-pet.png)
 
 ---
 
 **Conflict highlight — live in the task list**
 If any task shares a time slot with another task (across any pet), its row turns **orange bold with ⚠** immediately — no need to hit Generate first.
 
-![Conflicting task shown in orange](5-add-conflicting-task.png)
+![Conflicting task shown in orange](demo/5-add-conflicting-task.png)
 
 ---
 
 **Delete to resolve — then re-check**
 Click **Delete** next to a conflicting task to remove it. The orange highlight clears instantly.
 
-![Conflict resolved after delete](6-delete-taks-add-newtaks-no-conflcit.png)
+![Conflict resolved after delete](demo/6-delete-taks-add-newtaks-no-conflcit.png)
 
 ---
 
 **Step 4 — Generate the schedule**
-One click produces the full cross-pet schedule sorted by time. Conflicting rows are highlighted in orange in the schedule table too, with an orange banner prompting you to delete and resolve.
+One click produces the full cross-pet schedule sorted by **priority first, then time** — high-priority tasks always surface at the top. Pet names show species emojis, task names show type emojis. Conflicting rows are highlighted in orange in the schedule table, with an orange banner prompting you to delete and resolve.
 
 
 
@@ -153,7 +159,7 @@ One click produces the full cross-pet schedule sorted by time. Conflicting rows 
 
 ### Key Scheduler behaviors
 
-- **Sorting** — `Scheduler.sort_by_time()` orders every task across all pets by HH:MM string, so the full day reads top-to-bottom in time order
+- **Priority-first sorting** — `Scheduler.sort_by_priority_then_time()` sorts high-priority tasks to the top; within each tier tasks are ordered by time. A high-priority vet at 15:00 appears before a low-priority walk at 07:00.
 - **Conflict warnings** — `Scheduler.detect_conflicts()` compares every task's `scheduled_time + due_date`; any two tasks sharing the same slot produce a warning string; the UI surfaces these as orange rows and an orange banner
 - **Daily recurrence** — `Scheduler.handle_recurrence()` advances `due_date` by 1 day (daily) or 7 days (weekly) using `timedelta` when a task is marked complete; `once` tasks are never re-created
 - **Filter by pet / status** — `filter_by_pet()` (case-insensitive) and `filter_by_status()` let the CLI demo slice the schedule without touching the data

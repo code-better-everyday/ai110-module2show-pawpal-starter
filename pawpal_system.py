@@ -130,6 +130,14 @@ class Scheduler:
         """Return all tasks sorted chronologically by scheduled_time (HH:MM string sort)."""
         return sorted(self.get_schedule(), key=lambda x: x[1].scheduled_time)
 
+    def sort_by_priority_then_time(self) -> list:
+        """Return tasks sorted by priority (high first) then by scheduled_time within each tier."""
+        order = {"high": 0, "medium": 1, "low": 2}
+        return sorted(
+            self.get_schedule(),
+            key=lambda x: (order.get(x[1].priority, 99), x[1].scheduled_time),
+        )
+
     def filter_by_status(self, completed: bool) -> list:
         """Return only tasks that match the given completion status (True or False)."""
         return [

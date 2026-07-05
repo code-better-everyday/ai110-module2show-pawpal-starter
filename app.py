@@ -10,10 +10,36 @@ Run with:  streamlit run app.py
 import streamlit as st
 from pawpal_system import Owner, Pet, Task, Scheduler
 
+
+def species_emoji(species: str) -> str:
+    return {"dog": "🐕", "cat": "🐈", "rabbit": "🐇", "bird": "🦜", "fish": "🐠", "hamster": "🐹"}.get(species.lower(), "🐾")
+
+
+def task_emoji(name: str) -> str:
+    n = name.lower()
+    if "walk" in n:   return "🚶"
+    if "feed" in n:   return "🍽️"
+    if "med" in n:    return "💊"
+    if "vet" in n:    return "🏥"
+    if "groom" in n:  return "✂️"
+    if "play" in n:   return "🎾"
+    return "📋"
+
+
 st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="centered")
 st.title("🐾 PawPal+")
 
-st.markdown("Welcome to **PawPal+** — your pet care planning assistant.")
+st.markdown(
+    """
+    <div style="text-align:center;padding:16px 0 8px 0;">
+        <div style="font-size:2.8rem;letter-spacing:10px;">🐕 🐈 🐇 🦜 🐹 🐠</div>
+        <p style="font-size:1.05rem;color:#666;margin-top:6px;">
+            Your all-in-one pet care planner — schedules, reminders, and happy pets.
+        </p>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
 st.divider()
 
@@ -63,7 +89,7 @@ if owner.pets:
     # Show existing pets
     st.markdown("**Your pets:**")
     for p in owner.pets:
-        st.write(f"  🐾 {p.name} ({p.species})")
+        st.write(f"  {species_emoji(p.species)} {p.name} ({p.species})")
     st.markdown("---")
 
 pet_name = st.text_input(
@@ -162,12 +188,12 @@ if pet.task_count() > 0:
                 unsafe_allow_html=True,
             )
             col_task.markdown(
-                f'<span style="color:#FF6B00;font-weight:bold">{t.name}</span>',
+                f'<span style="color:#FF6B00;font-weight:bold">{task_emoji(t.name)} {t.name}</span>',
                 unsafe_allow_html=True,
             )
         else:
             col_time.write(t.scheduled_time)
-            col_task.write(t.name)
+            col_task.write(f"{task_emoji(t.name)} {t.name}")
         col_dur.write(f"{t.duration_minutes} min")
         col_pri.write(t.priority)
         col_freq.write(t.frequency)
@@ -189,8 +215,8 @@ if st.button("Generate schedule"):
     else:
         scheduler = Scheduler(owner)
 
-        sorted_tasks = scheduler.sort_by_time()
-        st.markdown(f"**Schedule for {owner.name} — sorted by time:**")
+        sorted_tasks = scheduler.sort_by_priority_then_time()
+        st.markdown(f"**Schedule for {owner.name} — sorted by priority, then time:**")
 
         # Identify conflicting time slots to highlight rows
         seen_slots: dict = {}
@@ -207,11 +233,13 @@ if st.button("Generate schedule"):
             is_conflict = (task.scheduled_time, str(task.due_date)) in conflict_slots
             row_bg    = "background-color:#FFF3E0;" if is_conflict else ""
             cell_style = f'style="{row_bg}color:#FF6B00;font-weight:bold;padding:6px 10px;"' if is_conflict else 'style="padding:6px 10px;"'
+            pet_obj = next((p for p in owner.pets if p.name == p_name), None)
+            p_emoji = species_emoji(pet_obj.species) if pet_obj else "🐾"
             rows_html += (
                 f"<tr>"
                 f"<td {cell_style}>{task.scheduled_time}{' ⚠' if is_conflict else ''}</td>"
-                f"<td {cell_style}>{p_name}</td>"
-                f"<td {cell_style}>{task.name}</td>"
+                f"<td {cell_style}>{p_emoji} {p_name}</td>"
+                f"<td {cell_style}>{task_emoji(task.name)} {task.name}</td>"
                 f"<td {cell_style}>{task.duration_minutes}</td>"
                 f"<td {cell_style}>{task.priority}</td>"
                 f"<td {cell_style}>{task.frequency}</td>"
