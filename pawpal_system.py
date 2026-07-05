@@ -72,6 +72,14 @@ class Pet:
         """Return the total number of tasks assigned to this pet."""
         return len(self.tasks)
 
+    def remove_task(self, name: str, scheduled_time: str) -> bool:
+        """Remove a task matching name and scheduled_time. Returns True if removed."""
+        for task in self.tasks:
+            if task.name == name and task.scheduled_time == scheduled_time:
+                self.tasks.remove(task)
+                return True
+        return False
+
 
 @dataclass
 class Owner:

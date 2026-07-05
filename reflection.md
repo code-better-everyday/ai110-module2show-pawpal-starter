@@ -81,13 +81,39 @@ In testing, the UI allowed adding the same task twice at the same time, which tr
 
 **a. How you used AI**
 
-- How did you use AI tools during this project (for example: design brainstorming, debugging, refactoring)?
-- What kinds of prompts or questions were most helpful?
+I used an AI coding assistant (Claude Code) throughout all six phases of this project. The most effective uses were:
+
+- **System design brainstorming** — I described the PawPal+ scenario and asked the AI to help identify the four main classes (Task, Pet, Owner, Scheduler) and their responsibilities before writing any code.
+- **Scaffolding class stubs** — Once the UML was drafted, I asked the AI to generate Python class stubs using `@dataclass`, which gave me a clean starting structure to build on.
+- **Debugging runtime errors** — When the CLI output crashed due to a Unicode encoding error on Windows (`✓` and `○` symbols), I described the error and the AI quickly identified the cause and suggested ASCII replacements (`[x]` / `[ ]`).
+- **Generating test cases** — I asked the AI to draft tests for specific behaviors (sorting, conflict detection, recurrence) and explained each test before accepting it, rather than accepting the full suite blindly.
+
+The most helpful types of prompts were specific and concrete: "Given this class design, what edge cases should I test for `handle_recurrence`?" worked much better than "write me tests."
+
+**c. Using separate sessions for different phases**
+
+I used separate AI chat sessions for different phases of the project — the main implementation (classes, backend logic, UI) was built across the core sessions, and the test suite (Phase 5) was written in a dedicated separate session focused only on testing `pawpal_system.py`.
+
+This separation helped in two concrete ways. First, the testing session started with a clean context — the AI was not carrying assumptions from earlier design decisions, so it approached the test cases from the perspective of "what should this code guarantee?" rather than "what did we just write?" This surfaced edge cases (like `once` tasks not recurring, or `filter_by_pet` with no match returning an empty list) that might have been glossed over in a session already loaded with implementation context. Second, keeping testing separate enforced the CLI-first discipline: before opening the test session, all backend logic had already been verified to run correctly through `main.py`, so the tests were validating a known-working system rather than debugging and testing simultaneously. The separation made each session's purpose clear — build in one, verify in another — which is closer to how real software teams work.
 
 **b. Judgment and verification**
 
-- Describe one moment where you did not accept an AI suggestion as-is.
-- How did you evaluate or verify what the AI suggested?
+When the AI generated the initial UML diagram, it used a `1..*` (one-to-many) relationship between Owner and Pet — meaning an owner must have at least one pet at creation time. I noticed this did not match real usage: in the app, an owner is created first and pets are added afterward. I changed the relationship to `0..*` (zero-to-many) and documented this as a design change in section 1b.
+
+I verified the fix by tracing through the actual `Owner` dataclass — its `pets` field defaults to an empty list, which confirms that zero pets is a valid starting state. The AI's diagram was logically reasonable but did not account for the temporal order of object creation in the UI flow.
+
+A second example came during UI testing. After the AI connected the "Add task" button to the backend, I tested the app in the browser and noticed several usability problems the AI did not anticipate:
+
+- **Duplicate tasks**: clicking "Add task" twice silently added the same task twice at the same time, creating a false conflict. I directed the AI to add a duplicate guard that checks name + scheduled_time before adding.
+- **Fields not clearing**: after adding a task or pet, all input fields stayed filled with the previous values. I directed the AI to use a session state counter as a widget key suffix, which forces Streamlit to re-render the inputs blank after each successful add.
+- **Owner field stays editable**: the initial design kept the owner name as a plain text input forever. I directed the AI to change it so that once the owner name is confirmed, the field is replaced with a "Welcome, [Name]!" message and locked — the user can only change it via a separate "Change owner" button that resets the whole session.
+- **No clear flow between owner → pet → task**: the initial UI had all three sections visible at once with pre-filled values. I directed the AI to restructure it into four numbered steps (Set owner → Add a pet → Add a task → Generate schedule), with each section only appearing once the previous step is complete.
+
+These were all discovered by manually using the app — the AI produced code that was technically correct but was not usable without human testing and redirection.
+
+A fifth example came when I directed the AI to highlight the actual conflicting task rows in orange directly in the task list, rather than only showing a generic warning message after generating the schedule. The AI's default was to display conflicts as a text warning at the bottom of the page — the user would have to mentally match the warning text to the correct task row. I directed the AI to detect conflict slots inline during task rendering and apply orange-colored text to the time and task name of any conflicting row, so the user can see at a glance which specific tasks clash. This required computing conflict slots before the render loop (comparing all pets' tasks by scheduled_time + due_date) rather than relying on the Scheduler's string output. The orange conflict message banner was also added as a secondary cue with an instruction to delete a conflicting task to resolve it.
+
+A sixth example came when I noticed that the conflict warning had no resolution path — the app would show "Conflict at 09:00" but gave the user no way to act on it. The AI had not anticipated this gap. I directed the AI to add a `remove_task()` method to the `Pet` class and replace the static task table in the UI with interactive rows, each with a "Delete" button. On click, the task is removed from the pet's list and the UI refreshes, so the user can immediately re-check the schedule. The UML diagrams were also updated to document `remove_task()` as a first-class method. This shows that human oversight is needed not just at code review time, but when using the app as a real user would.
 
 ---
 
@@ -123,12 +149,12 @@ Edge cases identified and tested in `test_pawpal.py`:
 
 **a. What went well**
 
-- What part of this project are you most satisfied with?
+The "CLI-first" workflow worked extremely well. Building and verifying all four classes in `pawpal_system.py` through `main.py` before touching the Streamlit UI meant that by the time I connected the backend to the frontend, I already knew the logic was correct. The test suite also caught real behavior early — for example, the `handle_recurrence` test confirmed that `once` tasks correctly do not create a next occurrence, which would have been easy to miss.
 
 **b. What you would improve**
 
-- If you had another iteration, what would you improve or redesign?
+If I had another iteration, I would redesign the conflict detection to check for overlapping durations rather than just exact time matches. A 30-minute walk at 07:30 and a 60-minute vet appointment at 07:45 are a real conflict in practice, but the current system would not flag them. I would also add support for multiple pets in the UI — the current design stores them in the data model but the Streamlit app only exposes one pet per session.
 
 **c. Key takeaway**
 
-- What is one important thing you learned about designing systems or working with AI on this project?
+The most important thing I learned is that AI is most useful when you stay in the role of the architect. When I gave the AI a specific, well-scoped question — "how should the Scheduler retrieve tasks from the Owner?" — the output was precise and immediately usable. When I accepted suggestions without reading them carefully, I introduced problems I had to fix later (like the `1..*` UML relationship or the Unicode symbols that crashed on Windows). The human's job is to define the structure and verify the output, not just accept it.

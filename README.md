@@ -1,86 +1,39 @@
-# PawPal+ (Module 2 Project)
+# PawPal+ — Pet Care Scheduling Assistant
 
-You are building **PawPal+**, a Streamlit app that helps a pet owner plan care tasks for their pet.
+**PawPal+** is a Streamlit app that helps a pet owner stay consistent with daily pet care. Enter your name, add your pets, schedule tasks, and get a conflict-checked daily plan — all in one place.
 
-## Scenario
+---
 
-A busy pet owner needs help staying consistent with pet care. They want an assistant that can:
+## What it does
 
-- Track pet care tasks (walks, feeding, meds, enrichment, grooming, etc.)
-- Consider constraints (time available, priority, owner preferences)
-- Produce a daily plan and explain why it chose that plan
+- **Owner setup** — Enter your name once; the app locks it in and greets you by name for the rest of the session.
+- **Multi-pet support** — Add as many pets as you like (dogs, cats, or other). Each pet has its own task list.
+- **Task scheduling** — Add tasks with a name, time (HH:MM), duration, priority, and frequency (once / daily / weekly). Duplicate tasks at the same time are blocked automatically.
+- **Delete tasks** — Remove any task directly from the task list — useful when you need to resolve a scheduling conflict.
+- **Conflict detection** — Tasks that share the same time slot are flagged in **orange** in both the task list and the generated schedule, so you can spot and fix clashes at a glance.
+- **Recurring tasks** — Daily and weekly tasks automatically generate the next occurrence when marked complete.
+- **Sorted schedule** — One click generates a full cross-pet schedule sorted chronologically.
 
-Your job is to design the system first (UML), then implement the logic in Python, then connect it to the Streamlit UI.
-
-## What you will build
-
-Your final app should:
-
-- Let a user enter basic owner + pet info
-- Let a user add/edit tasks (duration + priority at minimum)
-- Generate a daily schedule/plan based on constraints and priorities
-- Display the plan clearly (and ideally explain the reasoning)
-- Include tests for the most important scheduling behaviors
+---
 
 ## Getting started
 
-### Setup
-
 ```bash
 python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
+.venv\Scripts\activate        # Windows
 pip install -r requirements.txt
+streamlit run app.py          # open http://localhost:8501
 ```
 
-### Suggested workflow
+To run the CLI demo (no browser needed):
 
-1. Read the scenario carefully and identify requirements and edge cases.
-2. Draft a UML diagram (classes, attributes, methods, relationships).
-3. Convert UML into Python class stubs (no logic yet).
-4. Implement scheduling logic in small increments.
-5. Add tests to verify key behaviors.
-6. Connect your logic to the Streamlit UI in `app.py`.
-7. Refine UML so it matches what you actually built.
-
-## 🖥️ Sample Output
-
-Run the CLI demo with: `python main.py`
-
-```
-==================================================
-  Today's Schedule for Jordan
-  Date: 2026-07-04
-==================================================
-  [Mochi ]  [ ] 07:30 | Morning walk (30 min) [high] [daily]
-  [Luna  ]  [ ] 08:00 | Feeding (10 min) [high] [daily]
-  [Mochi ]  [ ] 09:00 | Flea medication (5 min) [medium] [weekly]
-  [Luna  ]  [ ] 09:00 | Vet appointment (60 min) [high] [once]
-  [Luna  ]  [ ] 11:00 | Grooming (20 min) [medium] [weekly]
-  [Mochi ]  [ ] 18:00 | Evening walk (30 min) [high] [daily]
-
---- Conflict Check ---
-  Conflicts detected:
-  ! Conflict at 09:00 on 2026-07-04: 'Flea medication' and 'Vet appointment'
-
---- Recurring Task Demo ---
-  Before: [ ] 07:30 | Morning walk (30 min) [high] [daily]
-  Marking 'Morning walk' complete and scheduling next occurrence...
-  After:  [x] 07:30 | Morning walk (30 min) [high] [daily]
-  Next:   [ ] 07:30 | Morning walk (30 min) [high] [daily] (due: 2026-07-05)
-
---- Filter: Incomplete tasks only ---
-  [Mochi ]  [ ] 18:00 | Evening walk (30 min) [high] [daily]
-  [Mochi ]  [ ] 09:00 | Flea medication (5 min) [medium] [weekly]
-  ...
-
---- Filter: Mochi's tasks only ---
-  [Mochi ]  [x] 07:30 | Morning walk (30 min) [high] [daily]
-  [Mochi ]  [ ] 18:00 | Evening walk (30 min) [high] [daily]
-  ...
-==================================================
+```bash
+python main.py
 ```
 
-## 🧪 Testing PawPal+
+---
+
+## 🧪 Testing
 
 Run the full test suite from the project root:
 
@@ -120,22 +73,138 @@ tests/test_pawpal.py::test_filter_by_pet_no_match_returns_empty PASSED   [100%]
 ```
 
 **Confidence level: ⭐⭐⭐⭐ (4/5)**
-The core scheduling behaviors are fully tested. One star held back because conflict detection only checks exact time matches — duration overlaps (e.g. a task at 07:30 for 60 min vs one at 08:00) are not yet caught.
+Core scheduling behaviors are fully tested. One star held back because conflict detection checks exact time matches only — overlapping durations (e.g. a 60-min task at 07:30 vs a task at 08:00) are not yet caught.
 
-## 📐 Smarter Scheduling
+---
 
-| Feature | Method(s) | Notes |
-|---------|-----------|-------|
-| Task sorting by time | `Scheduler.sort_by_time()` | Sorts all tasks across all pets chronologically using HH:MM string sort with a lambda key |
-| Filter by status | `Scheduler.filter_by_status(completed)` | Returns only completed or only incomplete tasks across all pets |
-| Filter by pet | `Scheduler.filter_by_pet(pet_name)` | Returns only tasks belonging to a specific named pet (case-insensitive) |
-| Conflict detection | `Scheduler.detect_conflicts()` | Flags any two tasks sharing the exact same scheduled_time and due_date; returns warning strings rather than crashing |
-| Recurring tasks | `Scheduler.handle_recurrence(task, pet)` | When a daily or weekly task is marked complete, automatically creates the next occurrence with due_date advanced by 1 or 7 days using `timedelta`; "once" tasks are not re-created |
+## 📐 Scheduling Features
+
+| Feature | Method | Notes |
+|---------|--------|-------|
+| Sort by time | `Scheduler.sort_by_time()` | All tasks across all pets sorted chronologically by HH:MM string |
+| Filter by status | `Scheduler.filter_by_status(completed)` | Returns only completed or only incomplete tasks |
+| Filter by pet | `Scheduler.filter_by_pet(pet_name)` | Case-insensitive match on pet name |
+| Conflict detection | `Scheduler.detect_conflicts()` | Flags tasks sharing the same scheduled_time + due_date; returns warning strings |
+| Recurring tasks | `Scheduler.handle_recurrence(task, pet)` | Daily tasks advance 1 day; weekly tasks advance 7 days via `timedelta`; `once` tasks are not re-created |
+| Delete a task | `Pet.remove_task(name, scheduled_time)` | Removes a task by name + time match; returns True if found. Primary way to resolve conflicts in the UI |
+| Orange conflict highlight | UI — `app.py` | Conflicting task rows appear in orange bold text (with ⚠) in both the task list and the generated schedule |
+
+---
 
 ## 📸 Demo Walkthrough
 
-1. Launch the app with `streamlit run app.py` and open `http://localhost:8501` in your browser.
-2. Enter your name in the **Owner name** field and your pet's name and species.
-3. Add tasks for your pet — enter a task name, scheduled time (HH:MM), duration, priority, and frequency, then click **Add task**. The task table below updates immediately.
-4. Add a second task at the same time as an existing one to see the **conflict warning** appear when you generate the schedule.
-5. Click **Generate schedule** to see all tasks sorted chronologically with a conflict check — any time clashes are flagged with a warning message.
+### Main UI features
+
+**Step 1 — Set your name**
+Enter your name and click **Set owner**. The field locks and the app greets you by name. Use **Change owner** to reset the full session.
+
+![Owner welcome screen](1-pet-owner-welcome-screen.png)
+
+---
+
+**Step 2 — Add a pet**
+Enter a pet name and species, then click **Add pet**. The form resets automatically — add as many pets as you like. All added pets appear above the form.
+
+![Pet saved](2-saved-a-pet.png)
+
+---
+
+**Step 3 — Add tasks**
+Select which pet to assign the task to, fill in the name, time (HH:MM), duration, priority, and frequency, then click **Add task**. Duplicate tasks at the same time are blocked automatically.
+
+![Adding first task](3-add-task1.png)
+
+![Adding task for second pet](4-add-task-second-pet.png)
+
+---
+
+**Conflict highlight — live in the task list**
+If any task shares a time slot with another task (across any pet), its row turns **orange bold with ⚠** immediately — no need to hit Generate first.
+
+![Conflicting task shown in orange](5-add-conflicting-task.png)
+
+---
+
+**Delete to resolve — then re-check**
+Click **Delete** next to a conflicting task to remove it. The orange highlight clears instantly.
+
+![Conflict resolved after delete](6-delete-taks-add-newtaks-no-conflcit.png)
+
+---
+
+**Step 4 — Generate the schedule**
+One click produces the full cross-pet schedule sorted by time. Conflicting rows are highlighted in orange in the schedule table too, with an orange banner prompting you to delete and resolve.
+
+
+
+
+### Example workflow
+
+**Add a pet → schedule tasks → spot a conflict → resolve it → view today's schedule**
+
+1. Enter your name → **Set owner** (field locks, you're greeted by name)
+2. Enter pet name "Pintu", species "dog" → **Add pet** (form resets, Pintu appears in the list)
+3. Add task: `Morning Walk | 08:30 | 20 min | high | daily` → **Add task**
+4. Add task: `Feed | 08:00 | 20 min | high | daily` → **Add task** (no conflict yet)
+5. Add a second pet "Chinni" → add task: `Morning Walk | 08:00 | 20 min | high | daily`
+6. Switch back to Pintu in the task selector — the `Feed` row turns **orange ⚠** (Chinni already has 08:00)
+7. Click **Delete** next to the conflicting task to remove it
+8. Click **Generate schedule** → all tasks sorted by time, no orange rows, no conflict banner
+
+### Key Scheduler behaviors
+
+- **Sorting** — `Scheduler.sort_by_time()` orders every task across all pets by HH:MM string, so the full day reads top-to-bottom in time order
+- **Conflict warnings** — `Scheduler.detect_conflicts()` compares every task's `scheduled_time + due_date`; any two tasks sharing the same slot produce a warning string; the UI surfaces these as orange rows and an orange banner
+- **Daily recurrence** — `Scheduler.handle_recurrence()` advances `due_date` by 1 day (daily) or 7 days (weekly) using `timedelta` when a task is marked complete; `once` tasks are never re-created
+- **Filter by pet / status** — `filter_by_pet()` (case-insensitive) and `filter_by_status()` let the CLI demo slice the schedule without touching the data
+
+### CLI output (run `python main.py`)
+
+```
+==================================================
+  Today's Schedule for Jordan
+  Date: 2026-07-04
+==================================================
+  [Mochi ]  [ ] 07:30 | Morning walk (30 min) [high] [daily]
+  [Luna  ]  [ ] 08:00 | Feeding (10 min) [high] [daily]
+  [Mochi ]  [ ] 09:00 | Flea medication (5 min) [medium] [weekly]
+  [Luna  ]  [ ] 09:00 | Vet appointment (60 min) [high] [once]
+  [Luna  ]  [ ] 11:00 | Grooming (20 min) [medium] [weekly]
+  [Mochi ]  [ ] 18:00 | Evening walk (30 min) [high] [daily]
+
+--- Conflict Check ---
+  Conflicts detected:
+  ! Conflict at 09:00 on 2026-07-04: 'Flea medication' and 'Vet appointment'
+
+--- Recurring Task Demo ---
+  Before: [ ] 07:30 | Morning walk (30 min) [high] [daily]
+  Marking 'Morning walk' complete and scheduling next occurrence...
+  After:  [x] 07:30 | Morning walk (30 min) [high] [daily]
+  Next:   [ ] 07:30 | Morning walk (30 min) [high] [daily] (due: 2026-07-05)
+
+--- Filter: Incomplete tasks only ---
+  [Mochi ]  [ ] 18:00 | Evening walk (30 min) [high] [daily]
+  [Mochi ]  [ ] 09:00 | Flea medication (5 min) [medium] [weekly]
+  ...
+
+--- Filter: Mochi's tasks only ---
+  [Mochi ]  [x] 07:30 | Morning walk (30 min) [high] [daily]
+  [Mochi ]  [ ] 18:00 | Evening walk (30 min) [high] [daily]
+  ...
+==================================================
+```
+
+---
+
+## 🏗️ Architecture
+
+Four Python classes in `pawpal_system.py`:
+
+| Class | Role |
+|-------|------|
+| `Task` | Single care activity — name, time, duration, priority, frequency, completion status, due date |
+| `Pet` | Owns a list of tasks; adds, counts, and removes tasks |
+| `Owner` | Owns a list of pets; aggregates all tasks across pets |
+| `Scheduler` | Sorts, filters, detects conflicts, and handles recurrence across all of an owner's tasks |
+
+UML diagrams: [`diagrams/uml.mmd`](diagrams/uml.mmd) (initial design) and [`diagrams/uml_final.mmd`](diagrams/uml_final.mmd) (final implementation).
